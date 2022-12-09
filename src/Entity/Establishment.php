@@ -53,6 +53,10 @@ class Establishment
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updated_at = null;
 
+    #[ORM\ManyToOne(inversedBy: 'establishment')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?District $district = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -210,6 +214,18 @@ class Establishment
     public function setUpdatedAt(?\DateTimeInterface $updated_at): self
     {
         $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getDistrict(): ?District
+    {
+        return $this->district;
+    }
+
+    public function setDistrict(?District $district): self
+    {
+        $this->district = $district;
 
         return $this;
     }
