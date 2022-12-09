@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Establishment;
 use App\Repository\EstablishmentRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,5 +18,12 @@ class EstablishmentController extends AbstractController
         $establishmentList = $establishmentRepository->findAll();
         $jsonEstablishmentList = $serializer->serialize($establishmentList, 'json');
         return new JsonResponse($jsonEstablishmentList, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/establishment/{id}', name: 'getOnEstablishment', methods: ['GET'])]
+    public function getOnEstablishment(Establishment $establishment, SerializerInterface $serializer): JsonResponse
+    {
+        $jsonEstablishment = $serializer->serialize($establishment, 'json');
+        return new JsonResponse($jsonEstablishment, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 }
