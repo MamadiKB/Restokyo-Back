@@ -2,18 +2,20 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Repository\EstablishmentRepository;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class EstablishmentController extends AbstractController
 {
-    #[Route('/api/establishment', name: 'app_establishment')]
-    public function index(): JsonResponse
+    #[Route('/api/establishment', name: 'getEstablishmentList', methods: ['GET'])]
+    public function getEstablishmentList(EstablishmentRepository $establishmentRepository, SerializerInterface $serializer): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/EstablishmentController.php',
-        ]);
+        $establishmentList = $establishmentRepository->findAll();
+        $jsonEstablishmentList = $serializer->serialize($establishmentList, 'json');
+        return new JsonResponse($jsonEstablishmentList, Response::HTTP_OK, [], true);
     }
 }
