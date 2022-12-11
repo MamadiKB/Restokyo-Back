@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\EstablishmentRepository;
@@ -13,65 +15,74 @@ class Establishment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $type = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $description = null;
 
     #[ORM\Column(length: 200)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $address = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?int $price = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $website = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $phone = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $rating = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $picture = null;
 
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?int $status = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $opening_time = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishment')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getEstablishment"])]
+    #[Groups(["getEstablishment", "getTag"])]
     private ?District $district = null;
+
+    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'establishment')]
+    #[Groups(["getEstablishment", "getDistrict"])]
+    private Collection $tags;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -242,6 +253,33 @@ class Establishment
     public function setDistrict(?District $district): self
     {
         $this->district = $district;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->addEstablishment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tags->removeElement($tag)) {
+            $tag->removeEstablishment($this);
+        }
 
         return $this;
     }

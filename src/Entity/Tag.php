@@ -3,13 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\DistrictRepository;
+use App\Repository\TagRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: DistrictRepository::class)]
-class District
+#[ORM\Entity(repositoryClass: TagRepository::class)]
+class Tag
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,16 +21,12 @@ class District
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
-    private ?string $kanji = null;
-
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 255)]
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $slug = null;
 
-    #[ORM\OneToMany(mappedBy: 'district', targetEntity: Establishment::class)]
-    #[Groups(["getDistrict"])]
+    #[ORM\ManyToMany(targetEntity: Establishment::class, inversedBy: 'tags')]
+    #[Groups(["getTag"])]
     private Collection $establishment;
 
     public function __construct()
@@ -51,18 +47,6 @@ class District
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getKanji(): ?string
-    {
-        return $this->kanji;
-    }
-
-    public function setKanji(?string $kanji): self
-    {
-        $this->kanji = $kanji;
 
         return $this;
     }
@@ -91,7 +75,6 @@ class District
     {
         if (!$this->establishment->contains($establishment)) {
             $this->establishment->add($establishment);
-            $establishment->setDistrict($this);
         }
 
         return $this;
@@ -99,12 +82,7 @@ class District
 
     public function removeEstablishment(Establishment $establishment): self
     {
-        if ($this->establishment->removeElement($establishment)) {
-            // set the owning side to null (unless already changed)
-            if ($establishment->getDistrict() === $this) {
-                $establishment->setDistrict(null);
-            }
-        }
+        $this->establishment->removeElement($establishment);
 
         return $this;
     }
