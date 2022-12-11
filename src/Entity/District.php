@@ -14,19 +14,19 @@ class District
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $kanji = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $slug = null;
 
     #[ORM\OneToMany(mappedBy: 'district', targetEntity: Establishment::class)]

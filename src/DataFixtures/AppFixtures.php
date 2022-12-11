@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\District;
 use App\Entity\Establishment;
+use App\Entity\Tag;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 
@@ -11,6 +12,16 @@ class AppFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
+        // Création des tags
+        $tagList = [];
+        for ($i = 0; $i < 14; $i++) {
+            $tag = new Tag();
+            $tag->setName("tag $i");
+            $tag->setSlug("/slug$i");
+            $manager->persist($tag);
+            // On sauvegarde le tag créé dans un tableau.
+            $tagList[] = $tag; 
+        }
         // Création des district.
         $listDistrict = [];
         for ($i = 0; $i < 12; $i++) {
@@ -43,6 +54,8 @@ class AppFixtures extends Fixture
             $establishment->setOpeningTime('du ' . $i . ' a ' .$i);
             // On lie le district à un establishment pris au hasard dans le tableau des auteurs.
             $establishment->setDistrict($listDistrict[array_rand($listDistrict)]);
+            $establishment->addTag($tagList[array_rand($tagList)]);
+            $establishment->addTag($tagList[array_rand($tagList)]);
             $manager->persist($establishment);
         }
 

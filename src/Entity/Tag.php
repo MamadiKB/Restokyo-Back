@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\TagRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\TagRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
@@ -13,15 +14,19 @@ class Tag
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
     private ?string $slug = null;
 
     #[ORM\ManyToMany(targetEntity: Establishment::class, inversedBy: 'tags')]
+    #[Groups(["getTag"])]
     private Collection $establishment;
 
     public function __construct()
