@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\DistrictRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\DistrictRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: DistrictRepository::class)]
 class District
@@ -13,18 +14,23 @@ class District
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $kanji = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $slug = null;
 
     #[ORM\OneToMany(mappedBy: 'district', targetEntity: Establishment::class)]
+    #[Groups(["getDistrict"])]
     private Collection $establishment;
 
     public function __construct()

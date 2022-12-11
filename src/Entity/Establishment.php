@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\EstablishmentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\EstablishmentRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: EstablishmentRepository::class)]
 class Establishment
@@ -12,49 +13,64 @@ class Establishment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getEstablishment"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(["getEstablishment"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 25)]
+    #[Groups(["getEstablishment"])]
     private ?string $type = null;
 
     #[ORM\Column(length: 200, nullable: true)]
+    #[Groups(["getEstablishment"])]
     private ?string $description = null;
 
     #[ORM\Column(length: 200)]
+    #[Groups(["getEstablishment"])]
     private ?string $address = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["getEstablishment"])]
     private ?int $price = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["getEstablishment"])]
     private ?string $website = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
+    #[Groups(["getEstablishment"])]
     private ?string $phone = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $rating = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $picture = null;
 
     #[ORM\Column]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?int $status = null;
 
     #[ORM\Column(length: 200, nullable: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?string $opening_time = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishment')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["getEstablishment"])]
     private ?District $district = null;
 
     public function getId(): ?int

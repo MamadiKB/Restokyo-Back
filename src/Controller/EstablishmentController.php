@@ -16,14 +16,14 @@ class EstablishmentController extends AbstractController
     public function getEstablishmentList(EstablishmentRepository $establishmentRepository, SerializerInterface $serializer): JsonResponse
     {
         $establishmentList = $establishmentRepository->findAll();
-        $jsonEstablishmentList = $serializer->serialize($establishmentList, 'json');
+        $jsonEstablishmentList = $serializer->serialize($establishmentList, 'json', ['groups' => 'getEstablishment']);
         return new JsonResponse($jsonEstablishmentList, Response::HTTP_OK, [], true);
     }
 
     #[Route('/api/establishment/{id}', name: 'getOnEstablishment', methods: ['GET'])]
     public function getOnEstablishment(Establishment $establishment, SerializerInterface $serializer): JsonResponse
     {
-        $jsonEstablishment = $serializer->serialize($establishment, 'json');
+        $jsonEstablishment = $serializer->serialize($establishment, 'json', ['groups' => 'getEstablishment']);
         return new JsonResponse($jsonEstablishment, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 }
