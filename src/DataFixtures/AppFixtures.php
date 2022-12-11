@@ -35,8 +35,9 @@ class AppFixtures extends Fixture
             $listDistrict[] = $district;
         }
 
-        // Création d'une vingtaine d'establishment ayant pour titre
+        // creation d"un tableux contenant les type
         $typeArray = ['Restaurant', 'Izakaya'];
+        // Création d'une vingtaine d'establishment ayant pour titre
         for ($i = 0; $i < 20; $i++) {
             $key = array_rand($typeArray);
             $establishment = new Establishment;
@@ -54,8 +55,10 @@ class AppFixtures extends Fixture
             $establishment->setOpeningTime('du ' . $i . ' a ' .$i);
             // On lie le district à un establishment pris au hasard dans le tableau des auteurs.
             $establishment->setDistrict($listDistrict[array_rand($listDistrict)]);
+            // on ajoute deux tags pris au hasard
             $establishment->addTag($tagList[array_rand($tagList)]);
             $establishment->addTag($tagList[array_rand($tagList)]);
+            
             $manager->persist($establishment);
         }
 
