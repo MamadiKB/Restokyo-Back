@@ -71,7 +71,7 @@ class Establishment
     private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishment', cascade: ['persist'] )]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete:"CASCADE")]
     #[Groups(["getEstablishment", "getTag"])]
     private ?District $district = null;
 

@@ -60,4 +60,12 @@ class DistrictController extends AbstractController
         $location = $urlGenerator->generate('getOnEstablishment', ['id' => $district->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
     }
+
+    #[Route('/api/district/{id}', name: 'deleteDistrict', methods: ['DELETE'])]
+    public function deleteDistrict(District $district, EntityManagerInterface $em): JsonResponse 
+    {
+        $em->remove($district);
+        $em->flush();
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 }
