@@ -89,6 +89,8 @@ class EstablishmentController extends AbstractController
         // Si "find" ne trouve pas le district, alors null sera retourné.
         $updatedEstablishment->setDistrict($districtRepository->find($idDistrict));
         
+        $updatedEstablishment->setUpdatedAt(new \DateTime('now'));
+        
         $em->persist($updatedEstablishment);
         $em->flush();
 

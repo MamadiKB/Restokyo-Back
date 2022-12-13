@@ -32,7 +32,7 @@ class DistrictController extends AbstractController
         return new JsonResponse($jsonDistrict, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/api/district/{id}', name:"updateDistrict", methods:['PUT'])]
+    #[Route('/api/district/{id}', name:"updateDistrict", methods: ['PUT'])]
     public function updateDistrict(Request $request, SerializerInterface $serializer,
                                         District $currentDistrict, EntityManagerInterface $em, ): JsonResponse 
     {
@@ -49,15 +49,15 @@ class DistrictController extends AbstractController
 
     #[Route('/api/district', name:"createDistrict", methods: ['POST'])]
     public function createDistrict(Request $request, SerializerInterface $serializer, 
-                                        EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ): JsonResponse 
+                                   EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ): JsonResponse 
     {
         $district = $serializer->deserialize($request->getContent(), District::class, 'json');
 
         $em->persist($district);
         $em->flush();
 
-        $jsonDistrict = $serializer->serialize($district, 'json', ['groups' => 'getEstablishment']);
-        $location = $urlGenerator->generate('getOnEstablishment', ['id' => $district->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $jsonDistrict = $serializer->serialize($district, 'json', ['groups' => 'getDistrict']);
+        $location = $urlGenerator->generate('getOnDistrict', ['id' => $district->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
