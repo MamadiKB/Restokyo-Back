@@ -15,6 +15,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EstablishmentController extends AbstractController
 {
@@ -33,20 +34,22 @@ class EstablishmentController extends AbstractController
         return new JsonResponse($jsonEstablishment, Response::HTTP_OK, ['accept' => 'json'], true);
     }
    
-    #[Route('/api/establishment/{id}', name: 'deleteEstablishment', methods: ['DELETE'])]
-    public function deleteEstablishment(Establishment $establishment, EntityManagerInterface $em): JsonResponse 
-    {
-        $em->remove($establishment);
-        $em->flush();
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
-    }
 
     #[Route('/api/establishment', name:"createEstablishment", methods: ['POST'])]
     public function createEstablishment(Request $request, SerializerInterface $serializer, 
                                         EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, 
-                                        DistrictRepository $districtRepository, TagRepository $tagRepository): JsonResponse 
+                                        DistrictRepository $districtRepository, TagRepository $tagRepository,
+                                        ValidatorInterface $validator): JsonResponse 
     {
         $establishment = $serializer->deserialize($request->getContent(), Establishment::class, 'json');
+        
+        // On vérifie les erreurs
+        $errors = $validator->validate($establishment);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        }
+
         // Récupération de l'ensemble des données envoyées sous forme de tableau
         $content = $request->toArray();
 
@@ -75,12 +78,19 @@ class EstablishmentController extends AbstractController
     #[Route('/api/establishment/{id}', name:"updateEstablishment", methods:['PUT'])]
     public function updateEstablishment(Request $request, SerializerInterface $serializer,
                                         Establishment $currentEstablishment, EntityManagerInterface $em, 
-                                        DistrictRepository $districtRepository, TagRepository $tagRepository): JsonResponse 
+                                        DistrictRepository $districtRepository, ValidatorInterface $validator): JsonResponse 
     {
         $updatedEstablishment = $serializer->deserialize($request->getContent(), 
                 Establishment::class, 
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentEstablishment]);
+
+        // On vérifie les erreurs
+        $errors = $validator->validate($updatedEstablishment);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        }
         // Récupération de l'ensemble des données envoyées sous forme de tableau
         $content = $request->toArray();
         // Récupération de l'idDistrict. S'il n'est pas défini, alors on retourne le district de base.
@@ -90,11 +100,19 @@ class EstablishmentController extends AbstractController
         $updatedEstablishment->setDistrict($districtRepository->find($idDistrict));
         
         $updatedEstablishment->setUpdatedAt(new \DateTime('now'));
-        
+
         $em->persist($updatedEstablishment);
         $em->flush();
 
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
-   }
+    }
+
+    #[Route('/api/establishment/{id}', name: 'deleteEstablishment', methods: ['DELETE'])]
+    public function deleteEstablishment(Establishment $establishment, EntityManagerInterface $em): JsonResponse 
+    {
+        $em->remove($establishment);
+        $em->flush();
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
     
 }
