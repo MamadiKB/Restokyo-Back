@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TagController extends AbstractController
 {
@@ -35,7 +36,7 @@ class TagController extends AbstractController
     #[Route('/api/tag', name:"createTag", methods: ['POST'])]
     public function createTag(Request $request, SerializerInterface $serializer, 
                               EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
-                              EstablishmentRepository $establishmentRepository ): JsonResponse 
+                              EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
     {
         $tag = $serializer->deserialize($request->getContent(), Tag::class, 'json');
         // Récupération de l'ensemble des données envoyées sous forme de tableau
@@ -46,6 +47,12 @@ class TagController extends AbstractController
         // Si "find" ne trouve pas l'Establishment, alors null sera retourné.
         foreach ($idEstablishment as $value){
             $tag->addEstablishment($establishmentRepository->find($value));
+        }
+
+        $errors = $validator->validate($tag);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
 
         $em->persist($tag);
@@ -59,12 +66,19 @@ class TagController extends AbstractController
     #[Route('/api/tag/{id}', name:"updateTag", methods:['PUT'])]
     public function updateTag(Request $request, SerializerInterface $serializer,
                               Tag $currentTag, EntityManagerInterface $em,
-                              EstablishmentRepository $establishmentRepository ): JsonResponse 
+                              EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
     {
         $updatedTag = $serializer->deserialize($request->getContent(), 
                 Tag::class, 
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentTag]);
+
+        $errors = $validator->validate($updatedTag);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        }
+
         // Récupération de l'ensemble des données envoyées sous forme de tableau
         $content = $request->toArray();
         // Récupération de l'idEstablishment. S'il n'est pas défini, alors on met -1 par défaut.
@@ -74,6 +88,7 @@ class TagController extends AbstractController
         foreach ($idEstablishment as $value){
             $updatedTag->addEstablishment($establishmentRepository->find($value));
         }
+
         $em->persist($updatedTag);
         $em->flush();
 

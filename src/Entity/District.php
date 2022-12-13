@@ -7,6 +7,7 @@ use App\Repository\DistrictRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DistrictRepository::class)]
 class District
@@ -19,6 +20,8 @@ class District
 
     #[ORM\Column(length: 100)]
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Assert\NotBlank(message: "le nom du district est obligatoire")]
+    #[Assert\Length(min: 1, max: 100, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 50, nullable: true)]
@@ -27,6 +30,8 @@ class District
 
     #[ORM\Column(length: 100)]
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Assert\NotBlank(message: "Le slug du district est obligatoire")]
+    #[Assert\Length(min: 1, max: 100, minMessage: "Le slug doit faire au moins {{ limit }} caractère", maxMessage: "Le slugne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;
 
     #[ORM\OneToMany(mappedBy: 'district', targetEntity: Establishment::class)]

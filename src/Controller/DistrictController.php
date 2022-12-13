@@ -13,6 +13,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class DistrictController extends AbstractController
 {
@@ -34,13 +35,20 @@ class DistrictController extends AbstractController
 
     #[Route('/api/district/{id}', name:"updateDistrict", methods: ['PUT'])]
     public function updateDistrict(Request $request, SerializerInterface $serializer,
-                                        District $currentDistrict, EntityManagerInterface $em, ): JsonResponse 
+                                   District $currentDistrict, EntityManagerInterface $em,
+                                   ValidatorInterface $validator ): JsonResponse 
     {
         $updatedDistrict = $serializer->deserialize($request->getContent(), 
                 District::class, 
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentDistrict]);
-        
+        // On vérifie les erreurs
+        $errors = $validator->validate($updatedDistrict);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        }
+
         $em->persist($updatedDistrict);
         $em->flush();
 
@@ -49,9 +57,16 @@ class DistrictController extends AbstractController
 
     #[Route('/api/district', name:"createDistrict", methods: ['POST'])]
     public function createDistrict(Request $request, SerializerInterface $serializer, 
-                                   EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ): JsonResponse 
+                                   EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
+                                   ValidatorInterface $validator ): JsonResponse 
     {
         $district = $serializer->deserialize($request->getContent(), District::class, 'json');
+        // On vérifie les erreurs
+        $errors = $validator->validate($district);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        }
 
         $em->persist($district);
         $em->flush();

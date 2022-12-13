@@ -7,6 +7,7 @@ use App\Repository\TagRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
@@ -19,10 +20,14 @@ class Tag
 
     #[ORM\Column(length: 100)]
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Assert\NotBlank(message: "le nom du tag est obligatoire")]
+    #[Assert\Length(min: 1, max: 100, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Assert\NotBlank(message: "le slug du tag est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;
 
     #[ORM\ManyToMany(targetEntity: Establishment::class, inversedBy: 'tags')]
