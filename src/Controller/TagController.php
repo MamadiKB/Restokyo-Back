@@ -11,10 +11,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TagController extends AbstractController
 {
@@ -34,6 +35,7 @@ class TagController extends AbstractController
     }
 
     #[Route('/api/tag', name:"createTag", methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un tag')]
     public function createTag(Request $request, SerializerInterface $serializer, 
                               EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
                               EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
@@ -64,6 +66,7 @@ class TagController extends AbstractController
     }
 
     #[Route('/api/tag/{id}', name:"updateTag", methods:['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour uptate un tag')]
     public function updateTag(Request $request, SerializerInterface $serializer,
                               Tag $currentTag, EntityManagerInterface $em,
                               EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
@@ -96,6 +99,7 @@ class TagController extends AbstractController
     }
     
     #[Route('/api/tag/{id}', name: 'deleteTag', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un tag')]
     public function deleteTag(Tag $tag, EntityManagerInterface $em): JsonResponse 
     {
         $em->remove($tag);
