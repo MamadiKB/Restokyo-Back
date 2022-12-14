@@ -12,10 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EstablishmentController extends AbstractController
 {
@@ -36,6 +37,7 @@ class EstablishmentController extends AbstractController
    
 
     #[Route('/api/establishment', name:"createEstablishment", methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un établissement')]
     public function createEstablishment(Request $request, SerializerInterface $serializer, 
                                         EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, 
                                         DistrictRepository $districtRepository, TagRepository $tagRepository,
@@ -76,6 +78,7 @@ class EstablishmentController extends AbstractController
     }
 
     #[Route('/api/establishment/{id}', name:"updateEstablishment", methods:['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour update un établissement')]
     public function updateEstablishment(Request $request, SerializerInterface $serializer,
                                         Establishment $currentEstablishment, EntityManagerInterface $em, 
                                         DistrictRepository $districtRepository, ValidatorInterface $validator): JsonResponse 
@@ -108,6 +111,7 @@ class EstablishmentController extends AbstractController
     }
 
     #[Route('/api/establishment/{id}', name: 'deleteEstablishment', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un établissement')]
     public function deleteEstablishment(Establishment $establishment, EntityManagerInterface $em): JsonResponse 
     {
         $em->remove($establishment);
