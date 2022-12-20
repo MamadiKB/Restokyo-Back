@@ -3,22 +3,21 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\Establishment;
+use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
 
 class UserController extends AbstractController
 {
 
-    #[Route('/api/user/{id}', name: 'getOnUser', methods: ['GET'])]
+     #[Route('/api/user/{id}', name: 'getOnUser', methods: ['GET'])]
     public function getOnUser(User $user = null,  Security $security): JsonResponse
     {
 
@@ -34,40 +33,40 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/user/{id}/edit', name:"updateUser", methods:['PUT'])]
-    public function updateUser(Request $request, SerializerInterface $serializer,
-                                User $currentUser = null, EntityManagerInterface $em, 
-                                ValidatorInterface $validator, Security $security): JsonResponse 
+    public function updateUser(Request $request, User $currentUser = null, 
+                                EntityManagerInterface $em, Security $security, 
+                                UserPasswordHasherInterface $passwordHasher ): JsonResponse 
     {
         $securityUser = $security->getUser();
 
-        if ($securityUser !== $currentUser) {
-            throw $this->createAccessDeniedException('Non autorisé.');
-        }
         if ($currentUser === null) {
-            return new JsonResponse(['error' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['error' => 'Non autorisé'], Response::HTTP_NOT_FOUND);
         }
-        
-        $content = $request->toArray();
-        if ($content['password'] || $content['password'] === "") {
-            throw $this->createAccessDeniedException('Non autorisé.');
+        if ($securityUser !== $currentUser) {
+            return new JsonResponse(['error' => 'Non autorisé'], Response::HTTP_NOT_FOUND);
         }
-        
-        $updatedUser = $serializer->deserialize($request->getContent(), 
-                User::class, 
-                'json', 
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentUser]);
+        // création d'une instance du formulaire 'Usertype' et lui passer l'utilisateur a modifiée
+        $form = $this->createForm(UserType::class, $currentUser);
+        // décodé le contenu de la requête
+        $data = json_decode($request->getContent(), true);
+        // envoiyé les données dans le form et validé le formulaire
+        $form->submit($data);
 
-        // On vérifie les erreurs
-        $errors = $validator->validate($updatedUser);
-        if ($errors->count() > 0) {
-            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-            //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Si mot de passe présent dans le formulaire,
+            // on hâche
+            $passwordInForm = $form->get('password')->getData();
+            if ($passwordInForm) {
+                // On doit hacher le mot de passe
+                $hashedPassword = $passwordHasher->hashPassword($currentUser, $passwordInForm);
+                // On l'écrase dans le $user
+                $currentUser->setPassword($hashedPassword);
+            }
+                $em->persist($currentUser);
+                $em->flush();
+
+            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
         }
-
-        $em->persist($updatedUser);
-        $em->flush();
-
-        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+        return new JsonResponse(['error' => $form->isValid()], 400);
     }
-
 }
