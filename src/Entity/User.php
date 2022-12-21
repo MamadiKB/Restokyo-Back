@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -25,6 +26,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\Length(min: 8, max: 255, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
@@ -37,7 +39,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    private ?string $fristname = null;
+    private ?string $firstname = null;
 
     public function getId(): ?int
     {
@@ -154,14 +156,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getFristname(): ?string
+    public function getFirstname(): ?string
     {
-        return $this->fristname;
+        return $this->firstname;
     }
 
-    public function setFristname(?string $fristname): self
+    public function setFirstname(?string $firstname): self
     {
-        $this->fristname = $fristname;
+        $this->firstname = $firstname;
 
         return $this;
     }
