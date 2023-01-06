@@ -2,8 +2,10 @@
 
 namespace App\DataFixtures;
 
+use DateTime;
 use App\Entity\Tag;
 use App\Entity\User;
+use App\Entity\Comment;
 use App\Entity\District;
 use App\Entity\Establishment;
 use Doctrine\Persistence\ObjectManager;
@@ -23,13 +25,15 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         // Création d'un user "normal"
-        $user = new User();
-        $user->setEmail("user@bookapi.com");
-        $user->setRoles(["ROLE_USER"]);
-        $user->setPassword($this->userPasswordHasher->hashPassword($user, "password"));
-        $user->setPseudo("USER");
-        $manager->persist($user);
-        
+        for ($i = 0; $i < 2; $i++) {
+            $user = new User();
+            $user->setEmail("user$i@bookapi.com");
+            $user->setRoles(["ROLE_USER"]);
+            $user->setPassword($this->userPasswordHasher->hashPassword($user, "password"));
+            $user->setPseudo("USER$i");
+            $manager->persist($user);
+        }
+
         // Création d'un user admin
         $userAdmin = new User();
         $userAdmin->setEmail("admin@bookapi.com");
@@ -61,6 +65,21 @@ class AppFixtures extends Fixture
             $listDistrict[] = $district;
         }
 
+
+        // Création des district.
+        $listComment = [];
+        //$dateImmutable = new \DateTimeImmutable('2022-12-21 10:00:00');
+        for ($i = 0; $i < 20; $i++) {
+            // Création du district lui-même.
+            $comment = new Comment();
+            $comment->setContent("c'est un bon retaurant $i ! ");
+            $comment->setUser($user);
+            //$comment->setPublishedAt($dateImmutable);
+            $manager->persist($comment);
+
+            $listComment[] = $comment;
+        }
+
         // creation d"un tableux contenant les type
         $typeArray = ['Restaurant', 'Izakaya'];
         // Création d'une vingtaine d'establishment ayant pour titre
@@ -84,6 +103,8 @@ class AppFixtures extends Fixture
             // on ajoute deux tags pris au hasard
             $establishment->addTag($tagList[array_rand($tagList)]);
             $establishment->addTag($tagList[array_rand($tagList)]);
+            $establishment->addComment($listComment[array_rand($listComment)]);
+            
             
             $manager->persist($establishment);
         }

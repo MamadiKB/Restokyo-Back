@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\District;
+use App\Entity\Establishment;
+use App\Form\DistrictType;
 use App\Repository\DistrictRepository;
+use App\Repository\EstablishmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,45 +41,71 @@ class DistrictController extends AbstractController
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un district')]
     public function createDistrict(Request $request, SerializerInterface $serializer, 
                                    EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
-                                   ValidatorInterface $validator ): JsonResponse 
+                                   ValidatorInterface $validator): JsonResponse 
     {
-        $district = $serializer->deserialize($request->getContent(), District::class, 'json');
-        // On vérifie les erreurs
-        $errors = $validator->validate($district);
+        $district = new District ;
+        // Crée un formulaire de type CommentType à partir du nouveau commentaire
+        $form = $this->createForm(DistrictType::class, $district);
+        // Décode les données JSON de la requête en un tableau associatif
+        $data = json_decode($request->getContent(), true);
+
+        $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
+        // Envoie les données dans le formulaire et valide le formulaire
+        $form->submit($data);
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Déserialise les données JSON de la requête en un objet District
+            $newDistrict = $serializer->deserialize($request->getContent(),
+                District::class,
+                'json',
+                [AbstractNormalizer::OBJECT_TO_POPULATE => $district]);
+            // Enregistre le nouveau district dans la base de données
+            $em->persist($newDistrict);
+            $em->flush();
+            // Génère l'URL de la nouvelle ressource créée
+            $jsonDistrict = $serializer->serialize($newDistrict, 'json', ['groups' => 'getDistrict']);
+            $location = $urlGenerator->generate('getOnDistrict', ['id' => $newDistrict->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
+        }
 
-        $em->persist($district);
-        $em->flush();
-
-        $jsonDistrict = $serializer->serialize($district, 'json', ['groups' => 'getDistrict']);
-        $location = $urlGenerator->generate('getOnDistrict', ['id' => $district->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
+        return new JsonResponse(null ,Response::HTTP_BAD_REQUEST);
     }
+
 
     #[Route('/api/district/{id}', name:"updateDistrict", methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour update un district')]
     public function updateDistrict(Request $request, SerializerInterface $serializer,
                                    District $currentDistrict, EntityManagerInterface $em,
-                                   ValidatorInterface $validator ): JsonResponse 
+                                   UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse 
     {
-        $updatedDistrict = $serializer->deserialize($request->getContent(), 
-                District::class, 
-                'json', 
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentDistrict]);
-        // On vérifie les erreurs
-        $errors = $validator->validate($updatedDistrict);
+        // Crée un formulaire de type CommentType à partir du nouveau commentaire
+        $form = $this->createForm(DistrictType::class, $currentDistrict);
+        // Décode les données JSON de la requête en un tableau associatif
+        $data = json_decode($request->getContent(), true);
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
+        $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
+        // Envoie les données dans le formulaire et valide le formulaire
+        $form->submit($data);
 
-        $em->persist($updatedDistrict);
-        $em->flush();
-
-        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+        $updatedDistrict = $serializer->deserialize($request->getContent(), 
+                District::class, 
+                'json', 
+                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentDistrict]);
+            // Enregistre le district modifier dans la base de données
+            $em->persist($updatedDistrict);
+            $em->flush();
+        // Génère l'URL de la nouvelle ressource créée
+        $jsonDistrict = $serializer->serialize($updatedDistrict, 'json', ['groups' => 'getDistrict']);
+        $location = $urlGenerator->generate('getOnDistrict', ['id' => $updatedDistrict->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
     #[Route('/api/district/{id}', name: 'deleteDistrict', methods: ['DELETE'])]

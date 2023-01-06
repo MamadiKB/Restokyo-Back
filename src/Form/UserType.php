@@ -40,7 +40,7 @@ class UserType extends AbstractType
             ->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) {
                 // Form
                 $form = $event->getForm();
-                // Edit
+                // Register
                 $form->add('password', PasswordType::class, [
                     // For the edit
                     'empty_data' => '',
