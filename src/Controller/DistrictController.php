@@ -56,17 +56,17 @@ class DistrictController extends AbstractController
         }
         // Envoie les données dans le formulaire et valide le formulaire
         $form->submit($data);
-
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         if ($form->isSubmitted() && $form->isValid()) {
-            // Déserialise les données JSON de la requête en un objet Comment
+            // Déserialise les données JSON de la requête en un objet District
             $newDistrict = $serializer->deserialize($request->getContent(),
                 District::class,
                 'json',
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $district]);
-
+            // Enregistre le nouveau district dans la base de données
             $em->persist($newDistrict);
             $em->flush();
-
+            // Génère l'URL de la nouvelle ressource créée
             $jsonDistrict = $serializer->serialize($newDistrict, 'json', ['groups' => 'getDistrict']);
             $location = $urlGenerator->generate('getOnDistrict', ['id' => $newDistrict->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
@@ -86,7 +86,7 @@ class DistrictController extends AbstractController
         $form = $this->createForm(DistrictType::class, $currentDistrict);
         // Décode les données JSON de la requête en un tableau associatif
         $data = json_decode($request->getContent(), true);
-
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
@@ -99,10 +99,10 @@ class DistrictController extends AbstractController
                 District::class, 
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentDistrict]);
-
+            // Enregistre le district modifier dans la base de données
             $em->persist($updatedDistrict);
             $em->flush();
-
+        // Génère l'URL de la nouvelle ressource créée
         $jsonDistrict = $serializer->serialize($updatedDistrict, 'json', ['groups' => 'getDistrict']);
         $location = $urlGenerator->generate('getOnDistrict', ['id' => $updatedDistrict->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);

@@ -43,31 +43,38 @@ class EstablishmentController extends AbstractController
                                         DistrictRepository $districtRepository, TagRepository $tagRepository,
                                         ValidatorInterface $validator): JsonResponse 
     {
+        // Création d'un formulaire pour gérer les données de l'établissement
         $form = $this->createForm(EstablishmentType::class, new Establishment());
+        // Décode les données JSON de la requête en un tableau associatif
         $data = json_decode($request->getContent(), true);
-
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
-
+        // Envoie des données du formulaire et validation du formulaire
         $form->submit($data);
-
+        // Si le formulaire est soumis et valide
         if ($form->isSubmitted() && $form->isValid()) {
+            // Désérialisation des données JSON de la requête en un objet Establishment
             $newEstablishment = $serializer->deserialize($request->getContent(), Establishment::class, 'json');
-
+            // Récupération des données de la requête sous forme de tableau associatif
             $data = $request->toArray();
+            // Récupération de l'ID du quartier associé à l'établissement
             $idDistrict = $data['idDistrict'] ?? -1;
+            // Récupération de la liste des IDs de tags associés à l'établissement
             $idTags = $data['idTags'] ?? -1;
-
+            // Association de l'établissement au quartier correspondant
             $newEstablishment->setDistrict($districtRepository->find($idDistrict));
+            // Association de l'établissement aux tags correspondants
             foreach ($idTags as $value) {
                 $newEstablishment->addTag($tagRepository->find($value));
             }
-
+            // Enregistrement de l'établissement en base de données
             $em->persist($newEstablishment);
             $em->flush();
+            // Génération de l'URL de l'établissement créé
             $location = $urlGenerator->generate('getOnEstablishment', ['id' => $newEstablishment->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             $jsonEstablishment = $serializer->serialize($newEstablishment, 'json', ['groups' => 'getEstablishment']);
             return new JsonResponse($jsonEstablishment, Response::HTTP_CREATED, ["Location" => $location], true);
@@ -92,44 +99,54 @@ class EstablishmentController extends AbstractController
         if (!$establishment) {
             return new JsonResponse(null, JsonResponse::HTTP_NOT_FOUND);
         }
-
+        // Crée un formulaire de type EstablishmentType à partir de l'établissement courant
         $form = $this->createForm(EstablishmentType::class, $currentEstablishment);
+        // Décode les données JSON de la requête en un tableau associatif
         $data = json_decode($request->getContent(), true);
-        
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
-    
+        // Valide les données du formulaire
         $form->submit($data);
-
+        // Si le formulaire a été soumis et est valide
         if ($form->isSubmitted() && $form->isValid()) {
+            // Déserialise les données JSON de la requête en un objet Establishment
             $updatedEstablishment = $serializer->deserialize($request->getContent(), 
                 Establishment::class, 
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentEstablishment]);
 
             $data = $request->toArray();
+            // Récupère l'ID du district s'il existe
             $idDistrict = $data['idDistrict'] ?? null;
+            // Récupère la liste des IDs de tags s'ils existent
             $idTags = $data['idTags'] ?? null;
-
+            // Si l'ID du district existe, on associe le district à l'établissement mis à jour
             if ($idDistrict !== null) {
                 $updatedEstablishment->setDistrict($districtRepository->find($idDistrict));
             }
+                // Si la liste des IDs de tags existe, on ajoute les tags à l'établissement mis à jour
             if ($idTags !== null) {
                 // Récupérer la liste des tags actuels de l'établissement
                 $currentTags = $currentEstablishment->getTags();
+                // Parcours la liste des tags actuels
                 foreach ($currentTags as $tag) {
+                    // Supprime chaque tag de l'établissement en cours de modification
                     $currentEstablishment->removeTag($tag);
                 }
+                // Parcours la liste des tags envoyés dans la requête
                 foreach ($idTags as $value) {
+                    // Ajoute chaque tag à l'établissement en cours de modification
                     $updatedEstablishment->addTag($tagRepository->find($value));
                 }
             }
-
+            // Enregistre l'établissement modifier dans la base de données
             $em->persist($updatedEstablishment);
             $em->flush();
+            // Génère l'URL de la nouvelle ressource créée
             $location = $urlGenerator->generate('getOnEstablishment', ['id' => $updatedEstablishment->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             $jsonEstablishment = $serializer->serialize($updatedEstablishment, 'json', ['groups' => 'getEstablishment']);
             return new JsonResponse($jsonEstablishment, Response::HTTP_ACCEPTED, ["Location" => $location], true);

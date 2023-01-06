@@ -25,8 +25,11 @@ class CommentController extends AbstractController
     #[IsGranted('ROLE_ADMIN', message: 'Non autorisé')]
     public function getCommentList(CommentRepository $commentRepository, SerializerInterface $serializer): JsonResponse
     {
+        // Récupère tous les commentaires
         $commentList = $commentRepository->findAll();
+        // Sérialise les commentaires en JSON
         $jsonCommentList = $serializer->serialize($commentList, 'json', ['groups' => 'getComment']);
+
         return new JsonResponse($jsonCommentList, Response::HTTP_OK, [], true);
     }
 
@@ -34,6 +37,7 @@ class CommentController extends AbstractController
     #[IsGranted('ROLE_ADMIN', message: 'Non autorisé')]
     public function getOnComent(Comment $comment, SerializerInterface $serializer): JsonResponse
     {
+        // Sérialise le commentaire en JSON
         $jsonComent = $serializer->serialize($comment, 'json', ['groups' => 'getComment']);
         return new JsonResponse($jsonComent, Response::HTTP_OK, ['accept' => 'json'], true);
     }
@@ -49,7 +53,7 @@ class CommentController extends AbstractController
         $form = $this->createForm(CommentType::class, $newComment);
         // Décode les données JSON de la requête en un tableau associatif
         $data = json_decode($request->getContent(), true);
-
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
@@ -94,7 +98,7 @@ class CommentController extends AbstractController
         $form = $this->createForm(CommentType::class, $currentComment);
         // Décode les données JSON de la requête en un tableau associatif
         $data = json_decode($request->getContent(), true);
-
+        // Si des erreurs sont détectées, elles sont renvoyées au client sous forme de JSON et une exception est levée
         $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);

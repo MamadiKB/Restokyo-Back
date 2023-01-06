@@ -25,15 +25,15 @@ class UserController extends AbstractController
     #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
     public function getOnUser(User $user = null,  Security $security): JsonResponse
     {
-
-        if ($security->getUser() !== $user) {
+        // Vérifie si l'utilisateur actuel est l'utilisateur ciblé ou s'il a le rôle 'ROLE_ADMIN'
+        if ($security->getUser() !== $user && !$security->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException('Non autorisé.');
         }
-        
+        // Si l'utilisateur n'existe pas, renvoie une réponse avec le statut HTTP 404 Not Found
         if ($user === null) {
             return new JsonResponse(['error' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
         }
-
+        // Renvoie l'utilisateur avec le statut HTTP 200 OK
         return $this->json($user, Response::HTTP_OK);
     }
 
