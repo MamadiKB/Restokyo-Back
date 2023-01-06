@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\CommentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CommentRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 class Comment
@@ -12,21 +13,31 @@ class Comment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getEstablishment", "getComment"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["getEstablishment", "getComment"])]
     private ?string $content = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(["getEstablishment", "getComment"])]
     private ?\DateTimeImmutable $published_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user_id = null;
+    #[Groups(["getEstablishment", "getComment"])]
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Establishment $establishment_id = null;
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["getComment"])]
+    private ?Establishment $establishment = null;
+
+    public function __construct()
+    {
+        $this->published_at = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -57,26 +68,26 @@ class Comment
         return $this;
     }
 
-    public function getUserId(): ?User
+    public function getUser(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(?User $user_id): self
+    public function setUser(?User $user): self
     {
-        $this->user_id = $user_id;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getEstablishmentId(): ?Establishment
+    public function getEstablishment(): ?Establishment
     {
-        return $this->establishment_id;
+        return $this->establishment;
     }
 
-    public function setEstablishmentId(?Establishment $establishment_id): self
+    public function setEstablishment(?Establishment $establishment): self
     {
-        $this->establishment_id = $establishment_id;
+        $this->establishment = $establishment;
 
         return $this;
     }

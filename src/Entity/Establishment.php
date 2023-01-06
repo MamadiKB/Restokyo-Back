@@ -17,80 +17,81 @@ class Establishment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     #[Assert\NotBlank(message: "Le nom du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 100, minMessage: "Le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     #[Assert\NotBlank(message: "Le type du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 25, minMessage: "Le type doit faire au moins {{ limit }} caractère", maxMessage: "Le type ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $type = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $description = null;
 
     #[ORM\Column(length: 200)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     #[Assert\NotBlank(message: "L'adresse du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 200, minMessage: "L'adresse doit faire au moins {{ limit }} caractère", maxMessage: "L'adresse ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $address = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?int $price = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $website = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $phone = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $rating = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     #[Assert\NotBlank(message: "le slug du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "le slug doit faire au moins {{ limit }} caractère", maxMessage: "le slug ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $picture = null;
 
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     #[Assert\NotBlank(message: "Le status du restauran est obligatoire")]
     private ?int $status = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?string $opening_time = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
     private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishment', cascade: ['persist'] )]
     #[ORM\JoinColumn(nullable: true, onDelete:"CASCADE")]
-    #[Groups(["getEstablishment", "getTag"])]
+    #[Groups(["getEstablishment", "getTag", "getComment"])]
     private ?District $district = null;
 
-    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'establishment')]
+    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'establishment', cascade: ['persist'])]
     #[Groups(["getEstablishment", "getDistrict"])]
     private Collection $tags;
 
-    #[ORM\OneToMany(mappedBy: 'establishment_id', targetEntity: Comment::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'establishment', targetEntity: Comment::class, orphanRemoval: true)]
+    #[Groups(["getEstablishment", "getDistrict"])]
     private Collection $comments;
 
     public function __construct()
@@ -311,7 +312,7 @@ class Establishment
     {
         if (!$this->comments->contains($comment)) {
             $this->comments->add($comment);
-            $comment->setEstablishmentId($this);
+            $comment->setEstablishment($this);
         }
 
         return $this;
@@ -321,8 +322,8 @@ class Establishment
     {
         if ($this->comments->removeElement($comment)) {
             // set the owning side to null (unless already changed)
-            if ($comment->getEstablishmentId() === $this) {
-                $comment->setEstablishmentId(null);
+            if ($comment->getEstablishment() === $this) {
+                $comment->setEstablishment(null);
             }
         }
 

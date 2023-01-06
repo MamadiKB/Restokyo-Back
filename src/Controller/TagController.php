@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Tag;
+use App\Form\TagType;
 use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\EstablishmentRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -34,71 +34,85 @@ class TagController extends AbstractController
         return new JsonResponse($jsonTag, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/api/tag', name:"createTag", methods: ['POST'])]
+    #[Route('/api/tag/create', name:"createTag", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un tag')]
     public function createTag(Request $request, SerializerInterface $serializer, 
-                              EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
-                              EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
-    {
-        $tag = $serializer->deserialize($request->getContent(), Tag::class, 'json');
-        // Récupération de l'ensemble des données envoyées sous forme de tableau
-        $content = $request->toArray();
-        // Récupération de l'idEstablishment. S'il n'est pas défini, alors on met -1 par défaut.
-        $idEstablishment = $content['idEstablishment'] ?? -1;
-        // On parcoure le tableu idEstablishment qui contien l'id des Establishment.
-        // Si "find" ne trouve pas l'Establishment, alors null sera retourné.
-        foreach ($idEstablishment as $value){
-            $tag->addEstablishment($establishmentRepository->find($value));
-        }
+                            EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator,
+                            ValidatorInterface $validator): JsonResponse
+    {   
+        $tag = new tag ;
+        // Crée un formulaire de type CommentType à partir du nouveau commentaire
+        $form = $this->createForm(TagType::class, $tag);
+        // Décode les données JSON de la requête en un tableau associatif
+        $data = json_decode($request->getContent(), true);
 
-        $errors = $validator->validate($tag);
+        $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
+        // Envoie les données dans le formulaire et valide le formulaire
+        $form->submit($data);
+        // Form soumis et valide ?
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Déserialise les données JSON de la requête en un objet Comment
+            $newTag = $serializer->deserialize($request->getContent(),
+            Tag::class,
+            'json',
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $tag]);
 
-        $em->persist($tag);
-        $em->flush();
+            $em->persist($newTag);
+            $em->flush();
 
-        $jsonTag = $serializer->serialize($tag, 'json', ['groups' => 'getTag']);
-        $location = $urlGenerator->generate('getOnTag', ['id' => $tag->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        return new JsonResponse($jsonTag, Response::HTTP_CREATED, ["Location" => $location], true);
+            $jsonDistrict = $serializer->serialize($newTag, 'json', ['groups' => 'getTag']);
+            $location = $urlGenerator->generate('getOnTag', ['id' => $newTag->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
+            // return $this->json(['message'=> 'Tag créé avec succès.'], Response::HTTP_CREATED);
+        }
+
+        return new JsonResponse($form->getErrors(true), JsonResponse::HTTP_BAD_REQUEST);
     }
 
-    #[Route('/api/tag/{id}', name:"updateTag", methods:['PUT'])]
+    #[Route('/api/tag/{id}/update', name:"updateTag", methods:['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour uptate un tag')]
     public function updateTag(Request $request, SerializerInterface $serializer,
-                              Tag $currentTag, EntityManagerInterface $em,
-                              EstablishmentRepository $establishmentRepository, ValidatorInterface $validator ): JsonResponse 
+                              Tag $currentTag, EntityManagerInterface $em,UrlGeneratorInterface $urlGenerator,
+                              ValidatorInterface $validator): JsonResponse 
     {
-        $updatedTag = $serializer->deserialize($request->getContent(), 
-                Tag::class, 
-                'json', 
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentTag]);
+        // Crée un formulaire de type CommentType à partir du nouveau commentaire
+        $form = $this->createForm(TagType::class, $currentTag);
+        // Décode les données JSON de la requête en un tableau associatif
+        $data = json_decode($request->getContent(), true);
 
-        $errors = $validator->validate($updatedTag);
+        $errors = $validator->validate($data);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             //throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide");
         }
+        // Envoie les données dans le formulaire et valide le formulaire
+        $form->submit($data);
+        
+        // Form soumis et valide ?
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Déserialise les données JSON de la requête en un objet
+            $updatedTag = $serializer->deserialize($request->getContent(), 
+            Tag::class, 
+            'json', 
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $currentTag]);
+            
+            $em->persist($updatedTag);
+            $em->flush();
 
-        // Récupération de l'ensemble des données envoyées sous forme de tableau
-        $content = $request->toArray();
-        // Récupération de l'idEstablishment. S'il n'est pas défini, alors on met -1 par défaut.
-        $idEstablishment = $content['idEstablishment'] ?? -1;
-        // On parcoure le tableu idEstablishment qui contien l'id des Establishment.
-        // Si "find" ne trouve pas l'Establishment, alors null sera retourné.
-        foreach ($idEstablishment as $value){
-            $updatedTag->addEstablishment($establishmentRepository->find($value));
+            $jsonDistrict = $serializer->serialize($updatedTag, 'json', ['groups' => 'getTag']);
+            $location = $urlGenerator->generate('getOnTag', ['id' => $updatedTag->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            return new JsonResponse($jsonDistrict, Response::HTTP_CREATED, ["Location" => $location], true);
+            // return $this->json(['message'=> 'Tag créé avec succès.'], Response::HTTP_CREATED);
         }
 
-        $em->persist($updatedTag);
-        $em->flush();
-
-        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+        return new JsonResponse($form->getErrors(true), JsonResponse::HTTP_BAD_REQUEST);
     }
     
-    #[Route('/api/tag/{id}', name: 'deleteTag', methods: ['DELETE'])]
+    #[Route('/api/tag/{id}/delete', name: 'deleteTag', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un tag')]
     public function deleteTag(Tag $tag, EntityManagerInterface $em): JsonResponse 
     {
