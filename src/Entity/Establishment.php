@@ -94,11 +94,15 @@ class Establishment
     #[Groups(["getEstablishment", "getDistrict"])]
     private Collection $comments;
 
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoris')]
+    private Collection $users;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->updated_at = new \DateTimeImmutable();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -326,6 +330,33 @@ class Establishment
             if ($comment->getEstablishment() === $this) {
                 $comment->setEstablishment(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->addFavori($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeFavori($this);
         }
 
         return $this;
