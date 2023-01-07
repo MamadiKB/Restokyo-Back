@@ -74,7 +74,7 @@ class AppFixtures extends Fixture
             $comment = new Comment();
             $comment->setContent("c'est un bon retaurant $i ! ");
             $comment->setUser($user);
-            //$comment->setPublishedAt($dateImmutable);
+            $comment->setRating(mt_rand(1, 5));
             $manager->persist($comment);
 
             $listComment[] = $comment;
@@ -93,7 +93,6 @@ class AppFixtures extends Fixture
             $establishment->setPrice(30);
             $establishment->setWebsite('https: ' . $i);
             $establishment->setPhone(689613315);
-            $establishment->setRating(2.3);
             $establishment->setSlug('slug ' . $i);
             $establishment->setPicture('https: ' . $i);
             $establishment->setStatus(1);
