@@ -98,6 +98,7 @@ class Establishment
     {
         $this->tags = new ArrayCollection();
         $this->comments = new ArrayCollection();
+        $this->updated_at = new \DateTimeImmutable();
     }
 
     public function getId(): ?int

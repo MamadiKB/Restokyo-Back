@@ -20,6 +20,10 @@ class Comment
     #[Groups(["getEstablishment", "getComment"])]
     private ?string $content = null;
 
+    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: false)]
+    #[Groups(["getEstablishment", "getComment"])]
+    private ?string $rating = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(["getEstablishment", "getComment"])]
     private ?\DateTimeImmutable $published_at = null;
@@ -52,6 +56,18 @@ class Comment
     public function setContent(string $content): self
     {
         $this->content = $content;
+
+        return $this;
+    }
+
+    public function getRating(): ?string
+    {
+        return $this->rating;
+    }
+
+    public function setRating(?string $rating): self
+    {
+        $this->rating = $rating;
 
         return $this;
     }

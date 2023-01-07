@@ -68,10 +68,24 @@ class CommentController extends AbstractController
             $newComment->setEstablishment($establishment);
             // On associe le commentaire a l'utilistauer courant
             $newComment->setUser($security->getUser());
+            
             // Enregistre le nouveau commentaire dans la base de données
             $em->persist($newComment);
             $em->flush();
-            
+
+            // Récupération de toutes les commentaires de l'établissement
+            $establisComments = $establishment->getComments();
+            // Calcul de la moyenne des notes
+            $ratingSum = 0;
+            foreach ($establisComments as $comment) {
+                $ratingSum += $comment->getRating();
+            }
+            $ratingAverage = $ratingSum / count($establisComments);
+            // Mise à jour de l'établissement avec la nouvelle moyenne des notes
+            $establishment->setRating($ratingAverage);
+            $em->persist($establishment);
+            $em->flush();
+
             return $this->json(['message'=> 'Commentaire créé avec succès.'], Response::HTTP_CREATED);
         }
         
