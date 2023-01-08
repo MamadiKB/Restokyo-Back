@@ -107,7 +107,7 @@ class UserController extends AbstractController
         $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
-        // Déserialise les données JSON de la requête en un objet Comment
+        // Déserialise les données JSON de la requête en un objet User
         $updatedUser = $serializer->deserialize($request->getContent(), 
             User::class, 
             'json', 
@@ -129,5 +129,5 @@ class UserController extends AbstractController
 
         return new JsonResponse($form->getErrors(true), JsonResponse::HTTP_BAD_REQUEST);
     }
-
+    
 }

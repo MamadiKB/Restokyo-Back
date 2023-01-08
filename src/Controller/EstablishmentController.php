@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Establishment;
 use App\Form\EstablishmentType;
 use App\Repository\TagRepository;
 use App\Repository\DistrictRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\EstablishmentRepository;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -163,6 +165,32 @@ class EstablishmentController extends AbstractController
         $em->remove($establishment);
         $em->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+
+
+    #[Route('/api/establishment/{id}/favori', name: 'favoriAdd', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
+    public function favoriAdd(Request $request, SerializerInterface $serializer,
+                                Establishment $currentEstablishment,
+                                EntityManagerInterface $em, Security $security,
+                                ValidatorInterface $validator): JsonResponse
+    {
+
+        // Déserialise les données JSON de la requête en un objet user
+        $updatedUser = $serializer->deserialize($request->getContent(), 
+            User::class, 
+            'json', 
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $security->getUser()]);
+
+        $updatedUser->addFavori($currentEstablishment);
+
+        // Enregistre l'établissement modifier dans la base de données
+        $em->persist($updatedUser);
+        $em->flush();
+
+        return $this->json(['message'=> 'ok'], Response::HTTP_OK);
+
     }
     
 }

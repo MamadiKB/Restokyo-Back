@@ -34,7 +34,7 @@ class Comment
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     #[Groups(["getComment"])]
     private ?Establishment $establishment = null;
 

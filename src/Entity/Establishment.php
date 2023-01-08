@@ -94,7 +94,7 @@ class Establishment
     #[Groups(["getEstablishment", "getDistrict"])]
     private Collection $comments;
 
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoris')]
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoris',)]
     private Collection $users;
 
     public function __construct()
