@@ -45,7 +45,7 @@ class EstablishmentType extends AbstractType
                 'label' => 'Téléphone',
                 'required' => false,
             ])
-            ->add('rating', NumberType::class, [
+/*             ->add('rating', NumberType::class, [
                 'label' => 'Rating',
                 'required' => false,
                 'scale' => 1,
@@ -54,7 +54,7 @@ class EstablishmentType extends AbstractType
                     'max' => 5,
                     'step' => 1
                 ]
-            ])
+            ]) */
             ->add('slug', TextType::class, [
                 'label' => 'slug',
                 'required' => false,

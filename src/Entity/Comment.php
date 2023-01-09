@@ -13,19 +13,19 @@ class Comment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getComment"])]
+    #[Groups(["getEstablishment", "getComment","getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["getEstablishment", "getComment"])]
+    #[Groups(["getEstablishment", "getComment","getUser"])]
     private ?string $content = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: false)]
-    #[Groups(["getEstablishment", "getComment"])]
+    #[Groups(["getEstablishment", "getComment","getUser"])]
     private ?string $rating = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(["getEstablishment", "getComment"])]
+    #[Groups(["getEstablishment", "getComment","getUser"])]
     private ?\DateTimeImmutable $published_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]

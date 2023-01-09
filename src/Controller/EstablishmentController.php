@@ -167,30 +167,31 @@ class EstablishmentController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
-
-
-    #[Route('/api/establishment/{id}/favori', name: 'favoriAdd', methods: ['PUT'])]
+    #[Route('/api/establishment/{id}/favorite', name: 'addFavorite', methods: ['PUT'])]
     #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
-    public function favoriAdd(Request $request, SerializerInterface $serializer,
-                                Establishment $currentEstablishment,
-                                EntityManagerInterface $em, Security $security,
-                                ValidatorInterface $validator): JsonResponse
+    public function addFavorite(Request $request, EntityManagerInterface $em, 
+                                Security $security): JsonResponse
     {
+        $establishmentId = $request->get('id');
+        $user = $security->getUser();
 
-        // Déserialise les données JSON de la requête en un objet user
-        $updatedUser = $serializer->deserialize($request->getContent(), 
-            User::class, 
-            'json', 
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $security->getUser()]);
+        $establishmentRepository = $em->getRepository(Establishment::class);
+        $establishment = $establishmentRepository->find($establishmentId);
 
-        $updatedUser->addFavori($currentEstablishment);
+        if (!$establishment) {
+            return new JsonResponse(['message' => 'Établissement non trouvé'], JsonResponse::HTTP_NOT_FOUND);
+        }
 
-        // Enregistre l'établissement modifier dans la base de données
-        $em->persist($updatedUser);
+        if ($establishment->getUsers()->contains($user)) {
+            return new JsonResponse(['message' => 'Cet établissement est déjà dans vos favoris'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $establishment->addUser($user);
+        $em->persist($establishment);
         $em->flush();
 
-        return $this->json(['message'=> 'ok'], Response::HTTP_OK);
-
+        return new JsonResponse(['message'=> 'Favoris ajouté !'], JsonResponse::HTTP_ACCEPTED);
     }
+
     
 }

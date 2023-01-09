@@ -15,17 +15,17 @@ class Tag
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     #[Assert\NotBlank(message: "le nom du tag est obligatoire")]
     #[Assert\Length(min: 1, max: 100, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     #[Assert\NotBlank(message: "le slug du tag est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;

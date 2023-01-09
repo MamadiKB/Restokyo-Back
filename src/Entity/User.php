@@ -17,13 +17,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getComment"])]
+    #[Groups(["getUser", "getComment", "getEstablishment"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column]
+    #[Groups(["getUser", "getComment", "getEstablishment"])]
     private array $roles = [];
 
     /**
@@ -34,23 +35,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getComment"])]
+    #[Groups(["getUser", "getComment", "getEstablishment"])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getComment"])]
+    #[Groups(["getUser", "getComment", "getEstablishment"])]
     private ?string $picture = null;
 
     #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(["getUser"])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(["getUser"])]
     private ?string $firstname = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Comment::class, orphanRemoval: true)]
     private Collection $comments;
 
     #[ORM\ManyToMany(targetEntity: Establishment::class, inversedBy: 'users')]
+    #[Groups(["getUser"])]
     private Collection $favoris;
 
     public function __construct()
