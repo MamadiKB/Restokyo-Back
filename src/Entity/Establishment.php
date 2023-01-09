@@ -17,88 +17,92 @@ class Establishment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     #[Assert\NotBlank(message: "Le nom du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 100, minMessage: "Le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     #[Assert\NotBlank(message: "Le type du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 25, minMessage: "Le type doit faire au moins {{ limit }} caractère", maxMessage: "Le type ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $type = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $description = null;
 
     #[ORM\Column(length: 200)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     #[Assert\NotBlank(message: "L'adresse du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 200, minMessage: "L'adresse doit faire au moins {{ limit }} caractère", maxMessage: "L'adresse ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $address = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?int $price = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $website = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $phone = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 1, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $rating = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     #[Assert\NotBlank(message: "le slug du restauran est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "le slug doit faire au moins {{ limit }} caractère", maxMessage: "le slug ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $picture = null;
 
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     #[Assert\NotBlank(message: "Le status du restauran est obligatoire")]
     private ?int $status = null;
 
     #[ORM\Column(length: 200, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?string $opening_time = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getComment", "getUser"])]
     private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishment', cascade: ['persist'] )]
     #[ORM\JoinColumn(nullable: true, onDelete:"CASCADE")]
-    #[Groups(["getEstablishment", "getTag", "getComment"])]
+    #[Groups(["getEstablishment", "getTag", "getComment", "getUser"])]
     private ?District $district = null;
 
     #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'establishment', cascade: ['persist'])]
-    #[Groups(["getEstablishment", "getDistrict"])]
+    #[Groups(["getEstablishment", "getDistrict", "getUser"])]
     private Collection $tags;
 
     #[ORM\OneToMany(mappedBy: 'establishment', targetEntity: Comment::class, orphanRemoval: true)]
     #[Groups(["getEstablishment", "getDistrict"])]
     private Collection $comments;
 
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoris',)]
+    private Collection $users;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->updated_at = new \DateTimeImmutable();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -326,6 +330,33 @@ class Establishment
             if ($comment->getEstablishment() === $this) {
                 $comment->setEstablishment(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->addFavori($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeFavori($this);
         }
 
         return $this;

@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Establishment;
 use App\Form\EstablishmentType;
 use App\Repository\TagRepository;
 use App\Repository\DistrictRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\EstablishmentRepository;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -164,5 +166,32 @@ class EstablishmentController extends AbstractController
         $em->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
+
+    #[Route('/api/establishment/{id}/favorite', name: 'addFavorite', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
+    public function addFavorite(Request $request, EntityManagerInterface $em, 
+                                Security $security): JsonResponse
+    {
+        $establishmentId = $request->get('id');
+        $user = $security->getUser();
+
+        $establishmentRepository = $em->getRepository(Establishment::class);
+        $establishment = $establishmentRepository->find($establishmentId);
+
+        if (!$establishment) {
+            return new JsonResponse(['message' => 'Établissement non trouvé'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($establishment->getUsers()->contains($user)) {
+            return new JsonResponse(['message' => 'Cet établissement est déjà dans vos favoris'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $establishment->addUser($user);
+        $em->persist($establishment);
+        $em->flush();
+
+        return new JsonResponse(['message'=> 'Favoris ajouté !'], JsonResponse::HTTP_ACCEPTED);
+    }
+
     
 }

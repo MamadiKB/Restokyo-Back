@@ -23,7 +23,7 @@ class UserController extends AbstractController
 
     #[Route('/api/user/{id}', name: 'getOnUser', methods: ['GET'])]
     #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
-    public function getOnUser(User $user = null,  Security $security): JsonResponse
+    public function getOnUser(User $user = null,  Security $security, SerializerInterface $serializer): JsonResponse
     {
         // Vérifie si l'utilisateur actuel est l'utilisateur ciblé ou s'il a le rôle 'ROLE_ADMIN'
         if ($security->getUser() !== $user && !$security->isGranted('ROLE_ADMIN')) {
@@ -33,8 +33,9 @@ class UserController extends AbstractController
         if ($user === null) {
             return new JsonResponse(['error' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
         }
-        // Renvoie l'utilisateur avec le statut HTTP 200 OK
-        return $this->json($user, Response::HTTP_OK);
+
+        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUser']);
+        return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
     #[Route('/api/register', name:"createUser", methods: ['POST'])]
@@ -73,7 +74,8 @@ class UserController extends AbstractController
             $em->persist($newUser);
             $em->flush();
 
-            return $this->json(['message'=> 'Utilisateur créé avec succès.'], Response::HTTP_CREATED);
+            $jsonUser = $serializer->serialize($newUser, 'json', ['groups' => 'getUser']);
+            return new JsonResponse($jsonUser, Response::HTTP_CREATED);
         }
 
         return new JsonResponse($form->getErrors(true), JsonResponse::HTTP_BAD_REQUEST);
@@ -107,7 +109,7 @@ class UserController extends AbstractController
         $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
-        // Déserialise les données JSON de la requête en un objet Comment
+        // Déserialise les données JSON de la requête en un objet User
         $updatedUser = $serializer->deserialize($request->getContent(), 
             User::class, 
             'json', 
@@ -130,4 +132,23 @@ class UserController extends AbstractController
         return new JsonResponse($form->getErrors(true), JsonResponse::HTTP_BAD_REQUEST);
     }
 
+    #[Route('/api/user/{id}/delet', name: 'deleteUser', methods: ['DELETE'])]
+    #[IsGranted('ROLE_USER', message: 'Vous n\'avez pas les droits suffisants')]
+    public function deleteUser(User $currentUser, EntityManagerInterface $em,
+                                    Security $security): JsonResponse 
+    {
+        // Vérifie si l'utilisateur actuel est l'utilisateur ciblé ou s'il a le rôle 'ROLE_ADMIN'
+        if ($security->getUser() !== $currentUser && !$security->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('Non autorisé.');
+        }
+        // Si l'utilisateur n'existe pas, renvoie une réponse avec le statut HTTP 404 Not Found
+        if ($currentUser === null) {
+            return new JsonResponse(['error' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $em->remove($currentUser);
+        $em->flush();
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+    
 }

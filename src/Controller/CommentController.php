@@ -42,7 +42,7 @@ class CommentController extends AbstractController
         return new JsonResponse($jsonComent, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/api/comment/establishment/{id}', name:"createComment", methods: ['POST'])]
+    #[Route('/api/establishment/{id}/comment', name:"createComment", methods: ['POST'])]
     public function createComment(Establishment $establishment = null, Request $request,
                                 EntityManagerInterface $em, Security $security,
                                 SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse

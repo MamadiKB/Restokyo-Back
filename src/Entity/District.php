@@ -15,21 +15,21 @@ class District
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     #[Assert\NotBlank(message: "le nom du district est obligatoire")]
     #[Assert\Length(min: 1, max: 100, minMessage: "le nom doit faire au moins {{ limit }} caractère", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $name = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     private ?string $kanji = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(["getEstablishment", "getDistrict", "getTag"])]
+    #[Groups(["getEstablishment", "getDistrict", "getTag", "getUser"])]
     #[Assert\NotBlank(message: "Le slug du district est obligatoire")]
     #[Assert\Length(min: 1, max: 100, minMessage: "Le slug doit faire au moins {{ limit }} caractère", maxMessage: "Le slugne peut pas faire plus de {{ limit }} caractères")]
     private ?string $slug = null;
